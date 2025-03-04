@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Infinite Platformer</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: lightblue;
+    }
+    #player {
+      position: absolute;
+      width: 20px;
+      height: 30px;
+      background-color: red;
+      bottom: 0;
+      left: 100px;
+    }
+    .platform {
+      position: absolute;
+      background-color: green;
+    }
+    .enemy {
+        position: absolute;
+        background-color: purple;
+        width: 20px;
+        height: 20px;
+    }
+    .spike{
+        position: absolute;
+        background-color: grey;
+        width: 10px;
+        height: 10px;
+    }
+    #end{
+        position: absolute;
+        background-color: gold;
+        width: 30px;
+        height: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="player"></div>
+    <div id="end"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
