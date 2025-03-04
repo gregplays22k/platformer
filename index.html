@@ -89,6 +89,7 @@
   const platformSpeed = 5;
   let platformSpawnRate = 150;
   let platformTimer = 0;
+  let blockColor = "green";
 
   let cameraOffsetX = 0;
 
@@ -100,7 +101,7 @@
 
   function drawPlatforms() {
     platforms.forEach((platform) => {
-      ctx.fillStyle = "green";
+      ctx.fillStyle = blockColor;
       ctx.fillRect(platform.x - cameraOffsetX, platform.y, platform.width, platform.height);
     });
   }
