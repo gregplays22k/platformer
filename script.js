@@ -55,13 +55,15 @@ function generatePlatforms() {
     const platformX = cameraX + window.innerWidth + Math.random() * 200;
     const platformY = Math.random() * 200;
     const platformWidth = Math.random() * 200 + 50;
-    createPlatform(platformX, platformY, platformWidth, 20);
+    const platformHeight = 20; // Fixed block height
+
+    createPlatform(platformX, platformY, platformWidth, platformHeight);
 
     if(Math.random() < 0.2){
-        createEnemy(platformX + Math.random() * platformWidth, platformY + 20);
+        createEnemy(platformX + Math.random() * platformWidth, platformY + platformHeight);
     }
     if(Math.random() < 0.1){
-        createSpike(platformX + Math.random() * platformWidth, platformY + 20);
+        createSpike(platformX + Math.random() * platformWidth, platformY + platformHeight);
     }
   }
 }
