@@ -1,55 +1,226 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Infinite Platformer</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-    #game-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background-color: lightblue;
-    }
-    #player {
-      position: absolute;
-      width: 20px;
-      height: 30px;
-      background-color: red;
-      bottom: 0;
-      left: 100px;
-    }
-    .platform {
-      position: absolute;
-      background-color: green;
-    }
-    .enemy {
-        position: absolute;
-        background-color: purple;
-        width: 20px;
-        height: 20px;
-    }
-    .spike{
-        position: absolute;
-        background-color: grey;
-        width: 10px;
-        height: 10px;
-    }
-    #end{
-        position: absolute;
-        background-color: gold;
-        width: 30px;
-        height: 30px;
-    }
-  </style>
+<title>Infinite Platformer</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: black;
+  }
+  canvas {
+    display: block;
+  }
+  #home-screen, #pause-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 255, 0.8);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    z-index: 10;
+  }
+  #pause-screen{
+    background-color: rgba(128, 128, 128, 0.8);
+  }
+
+  #home-screen button, #pause-screen button {
+    padding: 10px 20px;
+    background-color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  #score {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    font-size: 20px;
+    z-index: 10;
+  }
+</style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="player"></div>
-    <div id="end"></div>
-  </div>
-  <script src="script.js"></script>
+<canvas id="gameCanvas"></canvas>
+<div id="home-screen">
+  <h1>Infinite Platformer</h1>
+  <button id="start-button">Start</button>
+</div>
+<div id="pause-screen" style="display: none;">
+  <h1>Paused</h1>
+  <button id="resume-button">Resume</button>
+</div>
+<div id="score">Score: 0</div>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const homeScreen = document.getElementById("home-screen");
+  const pauseScreen = document.getElementById("pause-screen");
+  const scoreDisplay = document.getElementById("score");
+  let score = 0;
+
+  let gameRunning = false;
+  let gamePaused = false;
+
+  const player = {
+    x: canvas.width / 2 - 25,
+    y: canvas.height - 50,
+    width: 50,
+    height: 50,
+    velocityX: 0,
+    velocityY: 0,
+    gravity: 1,
+    jumpStrength: -20,
+    onGround: false,
+    initialX : canvas.width / 2 - 25,
+    initialY : canvas.height - 50,
+  };
+
+  const platforms = [];
+  const platformWidth = 150;
+  const platformHeight = 20;
+  const platformSpeed = 5;
+  let platformSpawnRate = 150;
+  let platformTimer = 0;
+
+  let cameraOffsetX = 0;
+
+  function generatePlatform() {
+    const x = Math.random() * (canvas.width - platformWidth);
+    const y = -platformHeight;
+    platforms.push({ x, y, width: platformWidth, height: platformHeight });
+  }
+
+  function drawPlatforms() {
+    platforms.forEach((platform) => {
+      ctx.fillStyle = "green";
+      ctx.fillRect(platform.x - cameraOffsetX, platform.y, platform.width, platform.height);
+    });
+  }
+
+  function movePlatforms() {
+    platforms.forEach((platform, index) => {
+      platform.y += platformSpeed;
+      if (platform.y > canvas.height) {
+        platforms.splice(index, 1);
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+      }
+    });
+  }
+
+  function checkCollisions() {
+    player.onGround = false;
+    platforms.forEach((platform) => {
+      if (
+        player.x < platform.x - cameraOffsetX + platform.width &&
+        player.x + player.width > platform.x - cameraOffsetX &&
+        player.y < platform.y + platform.height &&
+        player.y + player.height > platform.y &&
+        player.velocityY >= 0 && player.y + player.height <= platform.y + 10
+      ) {
+        player.onGround = true;
+        player.y = platform.y - player.height;
+        player.velocityY = 0;
+      }
+    });
+  }
+  function resetPlayer() {
+      player.x = player.initialX;
+      player.y = player.initialY;
+      player.velocityX = 0;
+      player.velocityY = 0;
+      cameraOffsetX = 0;
+  }
+
+  function update() {
+    if (!gameRunning || gamePaused) return;
+
+    player.velocityY += player.gravity;
+    player.x += player.velocityX;
+    player.y += player.velocityY;
+
+    if (player.x < 0) player.x = 0;
+    if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
+    checkCollisions();
+    movePlatforms();
+
+    platformTimer++;
+    if (platformTimer > platformSpawnRate) {
+      generatePlatform();
+      platformTimer = 0;
+    }
+
+    cameraOffsetX = player.x - canvas.width / 2;
+    if (cameraOffsetX < 0) cameraOffsetX = 0;
+    if (cameraOffsetX > 999999) cameraOffsetX = 999999;
+
+    if (player.y > canvas.height) {
+        gameRunning = false;
+        homeScreen.style.display = "block";
+        platforms.length = 0;
+        score = 0;
+        scoreDisplay.textContent = `Score: ${score}`;
+    }
+
+    draw();
+    requestAnimationFrame(update);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPlatforms();
+    ctx.fillStyle = "red";
+    ctx.fillRect(player.x - cameraOffsetX, player.y, player.width, player.height);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") player.velocityX = -8;
+    if (e.key === "ArrowRight") player.velocityX = 8;
+    if (e.key === " ") {
+      if (player.onGround) player.velocityY = player.jumpStrength;
+    }
+    if (e.key === "Escape"){
+      if(gameRunning){
+        gamePaused = !gamePaused;
+        pauseScreen.style.display = gamePaused ? "block" : "none";
+        if(!gamePaused) update();
+      }
+    }
+    if(e.key === "r"){
+      if(gameRunning){
+        resetPlayer();
+      }
+    }
+
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") player.velocityX = 0;
+  });
+
+  document.getElementById("start-button").addEventListener("click", () => {
+    gameRunning = true;
+    homeScreen.style.display = "none";
+    resetPlayer();
+    score = 0;
+    scoreDisplay.textContent = `Score: ${score}`;
+    update();
+  });
+
+  document.getElementById("resume-button").addEventListener("click", () => {
+        gamePaused = false;
+        pauseScreen.style.display = "none";
+        update();
+  });
+</script>
 </body>
 </html>
